@@ -3,8 +3,8 @@
 // Tested on PHP 5.2, 5.3
 
 // This snippet (and some of the curl code) due to the Facebook SDK.
-if (!function_exists('curl_init')) {
-  throw new Exception('ShippingEasy needs the CURL PHP extension.');
+if (!function_exists('file_get_contents')) {
+  throw new Exception('ShippingEasy needs file_get_contents function.');
 }
 if (!function_exists('json_decode')) {
   throw new Exception('ShippingEasy needs the JSON PHP extension.');
