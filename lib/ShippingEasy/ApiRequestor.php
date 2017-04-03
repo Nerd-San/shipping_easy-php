@@ -87,7 +87,8 @@ class ShippingEasy_ApiRequestor
     if (ShippingEasy::$apiVersion)
       $headers[] = 'ShippingEasy-Version: ' . ShippingEasy::$apiVersion;
 
-    list($rbody, $rcode) = $this->_curlRequest($http_method, $absUrl, $headers, $payload);
+//    list($rbody, $rcode) = $this->_curlRequest($http_method, $absUrl, $headers, $payload);
+    list($rbody, $rcode) = $this->_file_get_contents_Request($http_method, $absUrl, $headers, $payload);
     return array($rbody, $rcode);
   }
 
@@ -183,4 +184,51 @@ class ShippingEasy_ApiRequestor
     $msg .= "\n\n(Network error [errno $errno]: $message)";
     throw new ShippingEasy_ApiConnectionError($msg);
   }
+
+  private function _file_get_contents_Request($meth, $absUrl, $headers, $payload)
+  {
+    $meth = strtoupper($meth);
+
+    if ($meth == 'GET') {
+    } else if ($meth == 'POST') {
+      if ($payload)
+        $payload = json_encode($payload);
+
+      $headers[] = 'Content-Type: application/json';
+      $headers[] = 'Content-Length: ' . strlen($payload);
+    } else if ($meth == 'PUT') {
+      if ($payload)
+        $payload = json_encode($payload);
+
+      $headers[] = 'Content-Type: application/json';
+      $headers[] = 'Content-Length: ' . strlen($payload);
+    } else if ($meth == 'DELETE')  {
+      if (count($params) > 0) {
+	      $encoded = self::encode($params);
+	      $absUrl = "$absUrl?$encoded";
+      }
+    } else {
+      throw new ShippingEasy_ApiError("Unrecognized method $meth");
+    }
+
+    $options = array(
+        'http' => array(
+        'header'  => $headers,
+        'method'  => $meth,
+        'content' => $payload
+      )
+    );
+    $context  = stream_context_create($options);
+    $rbody = file_get_contents($absUrl, false, $context);
+    if ($rbody === FALSE) {
+//TODO: handle errors
+    }
+    
+    $rcodeString = $http_response_header[0];
+    $rcodeArray = explode(" ",$rcodeString);
+    $rcode = $rcodeArray[1];
+    return array($rbody, $rcode);
+  }
+ 
+
 }
